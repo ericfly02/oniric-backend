@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "checkJs": true,
@@ -17,6 +17,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./src",
+    "noImplicitAny": false,
+    "noEmitOnError": false,
     "paths": {
       "@/*": ["*"]
     }

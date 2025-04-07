@@ -25,7 +25,7 @@ const validateSubscriptionUpdate = [
 ];
 
 // Get user's subscription
-router.get('/', auth, async (req, res, next) => {
+router.get('/', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.userId;
 
@@ -56,7 +56,7 @@ router.get('/', auth, async (req, res, next) => {
 });
 
 // Create a new subscription
-router.post('/', auth, validateSubscriptionCreate, async (req, res, next) => {
+router.post('/', auth, validateSubscriptionCreate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -99,7 +99,7 @@ router.post('/', auth, validateSubscriptionCreate, async (req, res, next) => {
 });
 
 // Update a subscription
-router.put('/:id', auth, validateSubscriptionUpdate, async (req, res, next) => {
+router.put('/:id', auth, validateSubscriptionUpdate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -164,7 +164,7 @@ router.put('/:id', auth, validateSubscriptionUpdate, async (req, res, next) => {
 });
 
 // Cancel a subscription
-router.put('/:id/cancel', auth, async (req, res, next) => {
+router.put('/:id/cancel', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { id } = req.params;
 

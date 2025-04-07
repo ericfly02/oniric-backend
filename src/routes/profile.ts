@@ -15,7 +15,7 @@ const validateProfileUpdate = [
 ];
 
 // Get user profile
-router.get('/', auth, async (req, res, next) => {
+router.get('/', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.userId;
 
@@ -47,7 +47,7 @@ router.get('/', auth, async (req, res, next) => {
 });
 
 // Update user profile
-router.put('/', auth, validateProfileUpdate, async (req, res, next) => {
+router.put('/', auth, validateProfileUpdate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

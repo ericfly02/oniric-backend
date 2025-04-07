@@ -34,7 +34,7 @@ const validateDreamId = [
 ];
 
 // Get all dreams with pagination
-router.get('/', auth, async (req, res, next) => {
+router.get('/', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.query.userId as string;
     const page = parseInt(req.query.page as string) || 0;
@@ -69,7 +69,7 @@ router.get('/', auth, async (req, res, next) => {
 });
 
 // Get dream by ID
-router.get('/:id', auth, validateDreamId, async (req, res, next) => {
+router.get('/:id', auth, validateDreamId, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -102,7 +102,7 @@ router.get('/:id', auth, validateDreamId, async (req, res, next) => {
 });
 
 // Create a new dream
-router.post('/', auth, validateDreamCreate, async (req, res, next) => {
+router.post('/', auth, validateDreamCreate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -136,7 +136,7 @@ router.post('/', auth, validateDreamCreate, async (req, res, next) => {
 });
 
 // Save a dream with user ID
-router.post('/save', auth, validateDreamCreate, async (req, res, next) => {
+router.post('/save', auth, validateDreamCreate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -176,7 +176,7 @@ router.post('/save', auth, validateDreamCreate, async (req, res, next) => {
 });
 
 // Update a dream
-router.put('/:id', auth, validateDreamUpdate, async (req, res, next) => {
+router.put('/:id', auth, validateDreamUpdate, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -214,7 +214,7 @@ router.put('/:id', auth, validateDreamUpdate, async (req, res, next) => {
 });
 
 // Delete a dream
-router.delete('/:id', auth, validateDreamId, async (req, res, next) => {
+router.delete('/:id', auth, validateDreamId, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -241,7 +241,7 @@ router.delete('/:id', auth, validateDreamId, async (req, res, next) => {
 });
 
 // Process audio dream
-router.post('/process-audio', auth, upload.single('audio'), async (req, res, next) => {
+router.post('/process-audio', auth, upload.single('audio'), async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     if (!req.file) {
       throw new ApiError(400, 'Audio file is required');
@@ -285,7 +285,7 @@ router.post('/process-audio', auth, upload.single('audio'), async (req, res, nex
 });
 
 // Generate comic for dream
-router.post('/comic', auth, async (req, res, next) => {
+router.post('/comic', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { interpretation, userId } = req.body;
 
@@ -319,7 +319,7 @@ router.post('/comic', auth, async (req, res, next) => {
 });
 
 // Update dream with comic
-router.put('/:id/comic', auth, validateDreamId, async (req, res, next) => {
+router.put('/:id/comic', auth, validateDreamId, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -358,7 +358,7 @@ router.put('/:id/comic', auth, validateDreamId, async (req, res, next) => {
 });
 
 // Generate video for dream
-router.post('/:id/video', auth, validateDreamId, async (req, res, next) => {
+router.post('/:id/video', auth, validateDreamId, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -419,7 +419,7 @@ router.post('/:id/video', auth, validateDreamId, async (req, res, next) => {
 });
 
 // Check video status
-router.get('/video/:taskId', auth, async (req, res, next) => {
+router.get('/video/:taskId', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { taskId } = req.params;
 

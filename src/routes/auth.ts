@@ -1,5 +1,5 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { supabase } from '../lib/supabase';
 import { ApiError } from '../middleware/errorHandler';
 import { auth } from '../middleware/auth';
@@ -18,9 +18,8 @@ const validateRegister = [
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   body('full_name').optional().isString().withMessage('Full name must be a string')
 ];
-
 // Login route
-router.post('/login', validateLogin, async (req, res, next) => {
+router.post('/login', validateLogin, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -60,10 +59,11 @@ router.post('/login', validateLogin, async (req, res, next) => {
       throw new ApiError(500, 'JWT secret not configured');
     }
 
+    const expiresIn = process.env.JWT_EXPIRES_IN ? process.env.JWT_EXPIRES_IN : '7d';
     const token = jwt.sign(
       { id: data.user.id, email: data.user.email },
       jwtSecret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: expiresIn as jwt.SignOptions["expiresIn"] }
     );
 
     res.status(200).json({
@@ -81,7 +81,7 @@ router.post('/login', validateLogin, async (req, res, next) => {
 });
 
 // Register route
-router.post('/register', validateRegister, async (req, res, next) => {
+router.post('/register', validateRegister, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -142,10 +142,11 @@ router.post('/register', validateRegister, async (req, res, next) => {
       throw new ApiError(500, 'JWT secret not configured');
     }
 
+    const expiresIn = process.env.JWT_EXPIRES_IN ? process.env.JWT_EXPIRES_IN : '7d';
     const token = jwt.sign(
       { id: data.user.id, email: data.user.email },
       jwtSecret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: expiresIn as jwt.SignOptions["expiresIn"] }
     );
 
     res.status(201).json({
@@ -165,7 +166,7 @@ router.post('/register', validateRegister, async (req, res, next) => {
 });
 
 // Logout route
-router.post('/logout', async (req, res) => {
+router.post('/logout', async (req: express.Request, res: express.Response) => {
   res.status(200).json({
     success: true,
     message: 'Logout successful'
@@ -173,7 +174,7 @@ router.post('/logout', async (req, res) => {
 });
 
 // Get current user route
-router.get('/me', auth, async (req, res) => {
+router.get('/me', auth, async (req: express.Request, res: express.Response) => {
   res.status(200).json({
     success: true,
     user: req.user
@@ -189,10 +190,11 @@ router.post('/refresh', auth, async (req, res, next) => {
       throw new ApiError(500, 'JWT secret not configured');
     }
 
+    const expiresIn = process.env.JWT_EXPIRES_IN ? process.env.JWT_EXPIRES_IN : '7d';
     const token = jwt.sign(
       { id: req.user.id, email: req.user.email },
       jwtSecret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: expiresIn as jwt.SignOptions["expiresIn"] }
     );
 
     res.status(200).json({
