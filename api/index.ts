@@ -21,7 +21,9 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  // all origins
+  //origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -43,6 +45,15 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     message: 'Server is running',
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Root path handler
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Oniric API is running',
+    docs: '/api-docs', // If you have API documentation
+    health: '/api/health'
   });
 });
 

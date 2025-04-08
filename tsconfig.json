@@ -15,14 +15,14 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": "./src",
+    "rootDir": "api",
+    "baseUrl": "api",
     "noImplicitAny": false,
     "noEmitOnError": false,
     "paths": {
       "@/*": ["*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["api/**/*"],
   "exclude": ["node_modules", "dist"]
 } 
