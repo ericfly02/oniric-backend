@@ -12,7 +12,12 @@ import { promisify } from 'util';
 import path from 'path';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+
+// Use memory storage instead of disk storage
+const upload = multer({ 
+  storage: multer.memoryStorage()
+});
+
 const unlinkAsync = promisify(fs.unlink);
 
 // Validation middleware
@@ -247,39 +252,34 @@ router.post('/process-audio', auth, upload.single('audio'), async (req: express.
       throw new ApiError(400, 'Audio file is required');
     }
 
-    const audioFilePath = req.file.path;
-    const audioServiceUrl = process.env.AUDIO_SERVICE_URL;
-
-    if (!audioServiceUrl) {
-      throw new ApiError(500, 'Audio service URL not configured');
-    }
-
-    // Create form data with audio file
+    // Use the buffer directly from memory
+    const audioBuffer = req.file.buffer;
+    const mimetype = req.file.mimetype;
+    
+    // Create a FormData object for your API request
     const formData = new FormData();
-    formData.append('audio', fs.createReadStream(audioFilePath), {
-      filename: 'dream_recording.webm',
-      contentType: req.file.mimetype,
+    formData.append('audio', audioBuffer, {
+      filename: req.file.originalname,
+      contentType: mimetype
     });
-
-    // Send to external service
-    const response = await axios.post(audioServiceUrl, formData, {
-      headers: {
-        ...formData.getHeaders(),
-      },
-    });
-
-    // Clean up temporary file
-    await unlinkAsync(audioFilePath);
-
-    res.status(200).json({
-      success: true,
-      data: response.data,
-    });
+    
+    // Make your API request with the form data
+    // Forward to your target API
+    const response = await axios.post(
+      process.env.YOUR_TARGET_API_URL || 'https://your-api-endpoint.com',
+      formData,
+      {
+        headers: {
+          ...formData.getHeaders(),
+          // Add any other headers you need
+        }
+      }
+    );
+    
+    // Return the response from the target API
+    res.status(200).json(response.data);
+    
   } catch (error) {
-    // Clean up temporary file if it exists
-    if (req.file) {
-      await unlinkAsync(req.file.path).catch(() => {});
-    }
     next(error);
   }
 });
