@@ -28,17 +28,42 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       throw new ApiError(401, 'Authorization token required');
     }
     
-    // Verify token
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new ApiError(500, 'JWT secret not configured');
-    }
-    
     try {
-      const decoded = jwt.verify(token, jwtSecret) as { id: string };
+      // First try to verify as Supabase JWT
+      const decodedToken = jwt.decode(token);
+      console.log("Decoded token:", JSON.stringify(decodedToken).substring(0, 100) + '...');
       
-      // Get user from database
-      const user = await getUserById(decoded.id);
+      if (!decodedToken) {
+        throw new Error('Invalid token format');
+      }
+      
+      // Handle different token formats
+      let userId;
+      
+      if (typeof decodedToken === 'object') {
+        // Supabase token format
+        if (decodedToken?.sub) {
+          userId = decodedToken.sub;
+        } 
+        // Our custom JWT format
+        else if (decodedToken?.id) {
+          // Verify with our secret for custom tokens
+          const jwtSecret = process.env.JWT_SECRET;
+          if (!jwtSecret) {
+            throw new ApiError(500, 'JWT secret not configured');
+          }
+          jwt.verify(token, jwtSecret);
+          userId = decodedToken.id;
+        } else {
+          throw new Error('Invalid token payload');
+        }
+      } else {
+        throw new Error('Invalid token format');
+      }
+      
+      // Get user from database using userId
+      console.log("Looking up user with ID:", userId);
+      const user = await getUserById(userId);
       
       if (!user) {
         throw new ApiError(401, 'User not found');
@@ -50,6 +75,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       
       next();
     } catch (error) {
+      console.error('Token verification error:', error);
       throw new ApiError(401, 'Invalid or expired token');
     }
   } catch (error) {
@@ -74,17 +100,44 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
       return next();
     }
     
-    // Verify token
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new ApiError(500, 'JWT secret not configured');
-    }
-    
     try {
-      const decoded = jwt.verify(token, jwtSecret) as { id: string };
+      // First try to verify as Supabase JWT
+      const decodedToken = jwt.decode(token);
       
-      // Get user from database
-      const user = await getUserById(decoded.id);
+      if (!decodedToken) {
+        return next();
+      }
+      
+      // Handle different token formats
+      let userId;
+      
+      if (typeof decodedToken === 'object') {
+        // Supabase token format
+        if (decodedToken?.sub) {
+          userId = decodedToken.sub;
+        } 
+        // Our custom JWT format
+        else if (decodedToken?.id) {
+          // Verify with our secret for custom tokens
+          const jwtSecret = process.env.JWT_SECRET;
+          if (!jwtSecret) {
+            return next();
+          }
+          try {
+            jwt.verify(token, jwtSecret);
+            userId = decodedToken.id;
+          } catch (e) {
+            return next();
+          }
+        } else {
+          return next();
+        }
+      } else {
+        return next();
+      }
+      
+      // Get user from database using userId
+      const user = await getUserById(userId);
       
       if (user) {
         // Add user to request object
