@@ -38,8 +38,16 @@ const validateDreamId = [
   param('id').notEmpty().withMessage('Dream ID is required'),
 ];
 
+// Add this function at the beginning of your dreams.ts file
+const disableCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+};
+
 // Get all dreams with pagination
-router.get('/', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+router.get('/', disableCache, auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.query.userId as string;
     const page = parseInt(req.query.page as string) || 0;

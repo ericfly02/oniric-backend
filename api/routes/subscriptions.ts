@@ -7,6 +7,14 @@ import { body, param, validationResult } from 'express-validator';
 
 const router = express.Router();
 
+// Add this function at the beginning of your subscriptions.ts file
+const disableCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+};
+
 // Validation middleware
 const validateSubscriptionCreate = [
   body('user_id').notEmpty().withMessage('User ID is required'),
@@ -25,7 +33,7 @@ const validateSubscriptionUpdate = [
 ];
 
 // Get user's subscription
-router.get('/', auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+router.get('/', disableCache, auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.userId;
 
