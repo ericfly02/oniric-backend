@@ -38,7 +38,7 @@ const validateDreamId = [
   param('id').notEmpty().withMessage('Dream ID is required'),
 ];
 
-// Add this function at the beginning of your dreams.ts file
+// Disable caching middleware
 const disableCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
@@ -46,35 +46,43 @@ const disableCache = (req: express.Request, res: express.Response, next: express
   next();
 };
 
-// Get all dreams with pagination
+// Get dreams endpoint
 router.get('/', disableCache, auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const userId = req.query.userId as string;
-    const page = parseInt(req.query.page as string) || 0;
-    const pageSize = parseInt(req.query.pageSize as string) || 9;
-
+    const page = parseInt(req.query.page as string || '0');
+    const pageSize = parseInt(req.query.pageSize as string || '9');
+    
     if (!userId) {
       throw new ApiError(400, 'User ID is required');
     }
-
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
-
-    const { data, error, count } = await supabase
+    
+    console.log(`Fetching dreams for user: ${userId}, page: ${page}, pageSize: ${pageSize}`);
+    
+    // Calculate offset based on page and pageSize
+    const offset = page * pageSize;
+    
+    // Query to get dreams
+    const { data: dreams, error, count } = await supabase
       .from('dreams')
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
-      .order('date', { ascending: false })
-      .range(from, to);
-
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+    
     if (error) {
-      throw new ApiError(500, error.message);
+      console.error('Supabase error fetching dreams:', error);
+      throw new ApiError(500, `Error fetching dreams: ${error.message}`);
     }
-
+    
+    console.log(`Found ${count || 0} dreams, returning ${dreams?.length || 0} results`);
+    
+    // Send the response with proper headers to prevent caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
     res.status(200).json({
-      success: true,
-      data,
-      count,
+      data: dreams || [],
+      count: count || 0
     });
   } catch (error) {
     next(error);

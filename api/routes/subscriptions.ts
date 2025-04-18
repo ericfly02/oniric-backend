@@ -7,7 +7,7 @@ import { body, param, validationResult } from 'express-validator';
 
 const router = express.Router();
 
-// Add this function at the beginning of your subscriptions.ts file
+// Disable caching middleware
 const disableCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
@@ -32,32 +32,70 @@ const validateSubscriptionUpdate = [
   body('end_date').optional(),
 ];
 
-// Get user's subscription
+// Get user subscription
 router.get('/', disableCache, auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
+    // Get user ID from the request (added by auth middleware)
     const userId = req.userId;
-
+    
     if (!userId) {
-      throw new ApiError(401, 'Authentication required');
+      throw new ApiError(400, 'User ID is required');
     }
-
-    const { data, error } = await supabase
+    
+    console.log(`Fetching subscription for user: ${userId}`);
+    
+    // Query to get user subscription
+    const { data: subscription, error } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
       .single();
-
-    // No error if no subscriptions found
-    if (error && error.code !== 'PGRST116') {
-      throw new ApiError(500, error.message);
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is OK
+      console.error('Supabase error fetching subscription:', error);
+      throw new ApiError(500, `Error fetching subscription: ${error.message}`);
     }
-
-    res.status(200).json({
-      success: true,
-      data: data || null,
-    });
+    
+    // If no subscription found, get user profile to determine tier
+    if (!subscription) {
+      console.log('No subscription found, checking user profile');
+      
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('tier, is_premium')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) {
+        console.error('Supabase error fetching profile:', profileError);
+        throw new ApiError(500, `Error fetching profile: ${profileError.message}`);
+      }
+      
+      // Return default subscription based on profile
+      const defaultSubscription = {
+        id: null,
+        user_id: userId,
+        tier: profile?.tier || 'free',
+        status: 'active',
+        is_premium: profile?.is_premium || false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Returning default subscription:', defaultSubscription);
+      
+      // Send response with caching prevention headers
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      return res.status(200).json(defaultSubscription);
+    }
+    
+    console.log('Found subscription:', subscription);
+    
+    // Send the response with proper headers to prevent caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.status(200).json(subscription);
   } catch (error) {
     next(error);
   }

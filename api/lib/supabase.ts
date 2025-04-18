@@ -20,6 +20,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 // Function to get user data by ID
 export const getUserById = async (userId: string) => {
+  console.log(`Getting user profile for ID: ${userId}`);
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -27,6 +28,7 @@ export const getUserById = async (userId: string) => {
     .single();
 
   if (error) {
+    console.error('Error fetching user:', error);
     throw new Error(`Error fetching user: ${error.message}`);
   }
 
