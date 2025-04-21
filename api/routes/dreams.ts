@@ -65,10 +65,8 @@ router.get('/', disableCache, auth, async (req: express.Request, res: express.Re
     // Query to get dreams
     const { data: dreams, error, count } = await supabase
       .from('dreams')
-      .select('*', { count: 'exact' })
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + pageSize - 1);
+      .select('*')
+      .eq('user_id', userId);
     
     if (error) {
       console.error('Supabase error fetching dreams:', error);
