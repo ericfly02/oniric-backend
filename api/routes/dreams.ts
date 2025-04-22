@@ -49,50 +49,41 @@ const disableCache = (req: express.Request, res: express.Response, next: express
 // Get dreams endpoint
 router.get('/', disableCache, auth, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    // Use the authenticated user ID from the auth middleware
-    const userId = req.userId as string; 
+    const userId = req.query.userId as string;
     const page = parseInt(req.query.page as string || '0');
     const pageSize = parseInt(req.query.pageSize as string || '9');
-
-    // Validate userId exists after potentially being set by middleware
+    
     if (!userId) {
-      // This error suggests a problem with the auth middleware if it's reached
-      throw new ApiError(401, 'User not authenticated');
+      throw new ApiError(400, 'User ID is required');
     }
-
-    console.log(`Fetching dreams for authenticated user: ${userId}, page: ${page}, pageSize: ${pageSize}`);
-
+    
+    console.log(`Fetching dreams for user: ${userId}, page: ${page}, pageSize: ${pageSize}`);
+    
     // Calculate offset based on page and pageSize
     const offset = page * pageSize;
-    const limit = offset + pageSize - 1; // Calculate the 'to' index for range
-
-    // Query to get dreams with pagination and count
+    
+    // Query to get dreams
     const { data: dreams, error, count } = await supabase
       .from('dreams')
-      .select('*', { count: 'exact' }) // Request total count
-      .eq('user_id', userId)         // Filter by authenticated user ID
-      .range(offset, limit);         // Apply pagination range
-
+      .select('*')
+      .eq('user_id', userId);
+    
     if (error) {
       console.error('Supabase error fetching dreams:', error);
-      // Consider logging the specific Supabase error details for easier debugging
       throw new ApiError(500, `Error fetching dreams: ${error.message}`);
     }
-
-    console.log(`Supabase query returned count: ${count}, data length: ${dreams?.length || 0}`);
-
+    
+    console.log(`Found ${count || 0} dreams, returning ${dreams?.length || 0} results`);
+    
     // Send the response with proper headers to prevent caching
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
     res.status(200).json({
-      // Ensure data is an array even if null/undefined
-      data: dreams || [], 
-      // Use the total count from Supabase for pagination metadata
-      count: count || 0 
+      data: dreams || [],
+      count: count || 0
     });
   } catch (error) {
-    // Ensure errors are passed to the error handling middleware
-    next(error); 
+    next(error);
   }
 });
 
