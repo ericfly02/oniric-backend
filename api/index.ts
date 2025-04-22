@@ -21,11 +21,10 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  // all origins
-  //origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: process.env.CORS_ORIGIN || 'https://oniric-kappa.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(helmet());
@@ -38,6 +37,8 @@ app.use('/api/dreams', dreamRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
+
+app.options('*', cors());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
