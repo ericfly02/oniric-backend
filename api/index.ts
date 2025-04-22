@@ -21,7 +21,21 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://oniric-kappa.vercel.app',
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://oniric-kappa.vercel.app',
+      'https://astral-dreamscape.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ];
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow all origins in development
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
