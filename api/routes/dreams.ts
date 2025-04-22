@@ -59,14 +59,16 @@ router.get('/', disableCache, auth, async (req: express.Request, res: express.Re
     
     console.log(`Fetching dreams for user: ${userId}, page: ${page}, pageSize: ${pageSize}`);
     
-    // Calculate offset based on page and pageSize
-    const offset = page * pageSize;
+    // Calculate range for pagination
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
     
-    // Query to get dreams
+    // Query to get dreams with count of total matching rows
     const { data: dreams, error, count } = await supabase
       .from('dreams')
-      .select('*')
-      .eq('user_id', userId);
+      .select('*', { count: 'exact' })
+      .eq('user_id', userId)
+      .range(from, to);
     
     if (error) {
       console.error('Supabase error fetching dreams:', error);
