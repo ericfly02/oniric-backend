@@ -21,7 +21,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for now
+  origin: 'https://oniric-kappa.vercel.app', // Use specific origin instead of wildcard
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -40,8 +40,8 @@ app.use('/api/auth', authRoutes);
 
 // Add specific OPTIONS handler
 app.options('*', (req, res) => {
-  // Set CORS headers
-  res.header('Access-Control-Allow-Origin', '*');
+  // Set CORS headers with specific origin
+  res.header('Access-Control-Allow-Origin', 'https://oniric-kappa.vercel.app');
   res.header('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.header('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
