@@ -43,7 +43,18 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       if (typeof decodedToken === 'object') {
         // Supabase token format
         if (decodedToken?.sub) {
-          userId = decodedToken.sub;
+          // This is a Supabase token, verify it properly
+          const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
+          if (!supabaseJwtSecret) {
+            throw new ApiError(500, 'Supabase JWT secret not configured');
+          }
+          
+          try {
+            jwt.verify(token, supabaseJwtSecret);
+            userId = decodedToken.sub;
+          } catch (err) {
+            throw new ApiError(401, 'Invalid or expired Supabase token');
+          }
         } 
         // Our custom JWT format
         else if (decodedToken?.id) {
